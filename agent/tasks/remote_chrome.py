@@ -13,21 +13,21 @@ load_dotenv()  # .env 파일에 GEMINI_API_KEY 등을 넣어 두세요
 #GEMINI_MODEL = "gemini-2.0-flash-exp"  # 필요 시 다른 버전으로 교체
 GEMINI_MODEL = "gemini-2.5-pro-preview-05-06"  # 필요 시 다른 버전으로 교체
 
-with open("./script/system.md", "r", encoding="utf-8") as f:
+with open("../prompt/system_tong_hap.md", "r", encoding="utf-8") as f:
        system_task = f.read()
 # ──────────────────── 2. 사용자-입력용 커스텀 액션 정의 ────────────────────
 controller = Controller()
 
 @controller.action("ASK_USER")
 def ask_user(question: str) -> str:
+    print(f"\nASK_USER:")
     answer = input(f"\n{question}\n입력 ➜ ")
-    # 👇 꼭 include_in_memory=True로 반환
     return ActionResult(extracted_content=answer,
                         include_in_memory=True)
 
 @controller.action("PRINT_USER")
 def print_user(answer: str):
-    print(f"\n{answer}\n")
+    print(f"\nPRINT_USER: {answer}")
 # ──────────────────── 3. LLM 및 Agent 생성 ────────────────────
 llm = ChatGoogleGenerativeAI(
     model=GEMINI_MODEL,
@@ -64,7 +64,7 @@ def build_agent(task: str) -> Agent:
 
 # ──────────────────── 4. 실행 예시 ────────────────────
 async def main():
-   with open("./script/Merge_Task.md", "r", encoding="utf-8") as f:
+   with open("../prompt/task5.md", "r", encoding="utf-8") as f:
        task = f.read()
 
    found = await operate_existing_tab()
