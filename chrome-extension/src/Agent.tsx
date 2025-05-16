@@ -143,13 +143,13 @@ function ChatBubbleAgent(props: { isLoading: boolean; msg: string }) {
   );
 }
 
-function ChatBubbleUser() {
-  return (
-    <div className="m-2 self-end w-fit max-w-md p-3 rounded-2xl rounded-tr-none bg-gray-100">
-      <p>helloworld</p>
-    </div>
-  );
-}
+// function ChatBubbleUser() {
+//   return (
+//     <div className="m-2 self-end w-fit max-w-md p-3 rounded-2xl rounded-tr-none bg-gray-100">
+//       <p>helloworld</p>
+//     </div>
+//   );
+// }
 
 function Banner() {
   return (

@@ -9,16 +9,25 @@
 # make sure you set OPENAI_API_KEY=yourOpenAIKeyHere to .env file
 
 import os
+
 os.environ["PYDANTIC_V1_COMPAT_MODE"] = "true"
 import sys
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from fastapi import FastAPI
+from fastapi import FastAPI, WebSocket
 import logging
 from fastapi.middleware.cors import CORSMiddleware
-from agent.local_server.controllers import requestController, responseController, webSocketController  # 라우터 import
+from agent.local_server.controllers import (
+    requestController,
+    responseController,
+    webSocketController,
+)  # 라우터 import
 from fastapi.responses import Response
-    
+
+from agent.local_server.controllers.webSocketManager import websocket_manager
+
+
 # ----------------------------
 # Configure Logging
 # ----------------------------
@@ -33,27 +42,44 @@ app = FastAPI(title="AI Agent API with BrowserUse", version="1.0")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # For development: allow all origins. In production, specify exact origins.
+    allow_origins=[
+        "*"
+    ],  # For development: allow all origins. In production, specify exact origins.
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.websocket("/ws/agent")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket_manager.connect(websocket)
+    try:
+        while True:
+            text = await websocket.receive_text()
+            print(text)
+    except:
+        websocket_manager.disconnect(websocket)
+
 
 # favicon 요청 억제 라우트 추가
 @app.get("/favicon.ico")
 async def favicon():
     return Response(status_code=204)
 
+
 # 라우터 등록
 app.include_router(requestController.router)
 app.include_router(responseController.router)
 # app.include_router(webSocketController.router)
 
-#For executable.
+# For executable.
 # ----------------------------
 # Entry Point
 # ----------------------------
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("python_server:app", host="127.0.0.1", port=8888, reload=False, workers=1)
+    uvicorn.run(
+        "python_server:app", host="127.0.0.1", port=8888, reload=False, workers=1
+    )
