@@ -64,7 +64,7 @@ def build_agent(task: str) -> Agent:
 
 # ──────────────────── 4. 실행 예시 ────────────────────
 async def main():
-   with open("../prompt/task5.md", "r", encoding="utf-8") as f:
+   with open("../prompt/task4.md", "r", encoding="utf-8") as f:
        task = f.read()
 
    found = await operate_existing_tab()
