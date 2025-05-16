@@ -6,7 +6,9 @@ from datetime import datetime
 from agent.local_server.core.task_state import task_records, task_lock, TaskRecord, TaskStatus
 from browser_use.browser.browser import Browser, BrowserConfig
 from browser_use import Agent
-from langchain_openai import ChatOpenAI
+#from langchain_openai import ChatOpenAI
+from langchain_google_genai import ChatGoogleGenerativeAI
+from pydantic import SecretStr
 from agent.local_server.core.task_utils import get_chrome_path
 from pathlib import Path
 
@@ -16,10 +18,10 @@ logger = logging.getLogger(__name__)
 load_dotenv(dotenv_path=Path(__file__).resolve().parent.parent.parent / ".env")
 
 # Verify the OpenAI API key is loaded
-api_key = os.getenv("OPENAI_API_KEY")
+api_key = os.getenv("GEMINI_API_KEY") #OPENAI_API_KEY
 if not api_key:
     raise ValueError(
-        "OPENAI_API_KEY not found in .env file. Make sure your .env file is set up correctly."
+        "GEMINI_API_KEY not found in .env file. Make sure your .env file is set up correctly."
     )
 
 async def execute_task(task_id: int, task: str):
@@ -41,7 +43,7 @@ async def execute_task(task_id: int, task: str):
                 start_time=datetime.utcnow()
             )
             task_records.append(task_record)
-        
+
         # Initialize a new browser instance for this task
         logger.info(f"Task ID {task_id}: Initializing new browser instance.")
         browser = Browser(
@@ -57,11 +59,12 @@ async def execute_task(task_id: int, task: str):
         # Initialize and run the Agent with the new browser instance
         agent = Agent(
             task=task,
-            llm=ChatOpenAI(model="gpt-4o", api_key=api_key),
+            llm=ChatGoogleGenerativeAI(model='gemini-2.0-flash-exp', api_key=SecretStr(api_key)),  #ChatOpenAI(model="gpt-4o", api_key=api_key),
             browser=browser
         )
         logger.info(f"Task ID {task_id}: Agent initialized. Running task.")
         result = await agent.run()
+        result_str = str(result)
         logger.info(f"Task ID {task_id}: Agent.run() completed successfully.")
         
         # Update the task record with status 'completed'
@@ -73,6 +76,8 @@ async def execute_task(task_id: int, task: str):
                     record.duration = (record.end_time - record.start_time).total_seconds()
                     record.result = result
                     break
+                
+        return result_str
 
     except Exception as e:
         logger.error(f"Error in background task ID {task_id}: {e}")
