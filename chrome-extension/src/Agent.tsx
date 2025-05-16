@@ -3,6 +3,8 @@ import { useNavigate } from "react-router";
 import { socket } from "./socket";
 import { SquareArrowRight } from "lucide-react";
 
+const tasks: Array<{ is_success: boolean; url: string }> = [];
+
 export function Agent() {
   const [interrupted, setInterrupted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
