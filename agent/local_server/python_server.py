@@ -13,23 +13,22 @@ os.environ["PYDANTIC_V1_COMPAT_MODE"] = "true"
 import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
-from dotenv import load_dotenv
 from fastapi import FastAPI
 import logging
 from fastapi.middleware.cors import CORSMiddleware
-from agent.local_server.controllers import requestController, responseController  # 라우터 import
+from agent.local_server.controllers import requestController, responseController, webSocketController  # 라우터 import
+from fastapi.responses import Response
     
 # ----------------------------
-# 1. Configure Logging
+# Configure Logging
 # ----------------------------
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # ----------------------------
-# 3. Initialize FastAPI App
+# Initialize FastAPI App
 # ----------------------------
 app = FastAPI(title="AI Agent API with BrowserUse", version="1.0")
-
 
 # Configure CORS
 app.add_middleware(
@@ -40,13 +39,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# favicon 요청 억제 라우트 추가
+@app.get("/favicon.ico")
+async def favicon():
+    return Response(status_code=204)
+
 # 라우터 등록
 app.include_router(requestController.router)
 app.include_router(responseController.router)
+# app.include_router(webSocketController.router)
 
 #For executable.
 # ----------------------------
-# 12. Entry Point
+# Entry Point
 # ----------------------------
 if __name__ == "__main__":
     import uvicorn
