@@ -1,62 +1,60 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { socket } from "./socket";
 import { SquareArrowRight } from "lucide-react";
+import clsx from "clsx";
 
-const tasks: Array<{ is_success: boolean; url: string }> = [];
+type Task = {
+  url: string;
+  options?: string[];
+};
+
+type Result = {
+  msg: string;
+  action: string;
+  is_success: boolean;
+  is_done: boolean;
+};
+
+type Chat = {
+  msg: string;
+  who: "ai" | "usr";
+};
+
+const tasks: Task[] = [
+  {
+    url: "http://127.0.0.1:8888/run/0",
+    options: ["로그인을 완료하여 주세요"],
+  },
+  { url: "http://127.0.0.1:8888/run/1" },
+  { url: "http://127.0.0.1:8888/run/2" },
+  { url: "http://127.0.0.1:8888/run/3" },
+  { url: "http://127.0.0.1:8888/run/4" },
+  { url: "http://127.0.0.1:8888/run/5" },
+  { url: "http://127.0.0.1:8888/run/6" },
+  { url: "http://127.0.0.1:8888/run/7" },
+  { url: "http://127.0.0.1:8888/run/8" },
+  { url: "http://127.0.0.1:8888/run/9" },
+  { url: "http://127.0.0.1:8888/run/10" },
+];
 
 export function Agent() {
-  const [interrupted, setInterrupted] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const [action, setAction] = useState<{ msg: string } | null>(null);
-  useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const eventListener: (this: WebSocket, ev: MessageEvent<any>) => any = (
-      event
-    ) => {
-      console.log("Message from server ", event.data);
-      const data = JSON.parse(event.data);
-
-      if (data) {
-        setInterrupted(true);
-        setAction({
-          msg: "로그인을 진행하신 후, 다음으로 진행 버튼을 눌러주세요",
-        });
-      } else setInterrupted(false);
-    };
-
-    // Listen for messages
-    socket.addEventListener("message", eventListener);
-
-    return () => {
-      socket.removeEventListener("message", eventListener);
-    };
-  }, []);
+  const [isLoading, setIsLoading] = useState(false);
+  const [chats, setChats] = useState<Chat[]>([
+    { msg: "로그인 페이지로 이동중입니다...", who: "ai" },
+  ]);
+  // const [action, setAction] = useState<{ msg: string } | null>(null);
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8888/run?task="구글에 고양이를 검색해"`).then(
-      () => {
-        setInterrupted(true);
-        setAction({
-          msg: "로그인을 진행하신 후, 다음으로 진행 버튼을 눌러주세요",
-        });
-        console.log("Task is Done!!!");
-      }
-    );
+    const task = tasks.shift();
+    if (!task) return;
     setIsLoading(true);
-  }, []);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setInterrupted(true);
-      setAction({
-        msg: "로그인을 진행하신 후, 다음으로 진행 버튼을 눌러주세요",
+    fetch(task.url)
+      .then((res) => res.json())
+      .then((data: Result) => {
+        console.log(data);
+        setChats((prev) => [...prev, { msg: data.msg, who: "ai" }]);
+        setIsLoading(false);
       });
-    }, 3000);
-
-    return () => {
-      clearInterval(id);
-    };
   }, []);
 
   const navigate = useNavigate();
@@ -74,33 +72,50 @@ export function Agent() {
         </button>
       </div>
       <div className="flex flex-col flex-1 overflow-auto">
-        <ChatBubbleAgent
-          isLoading={isLoading}
-          msg="로그인화면으로 이동합니다....."
-        />
-        <ChatBubbleAgent
-          isLoading={isLoading}
-          msg="로그인화면에 도착하였습니다. 로그인을 진행해주세요."
-        />
-        {/* <ChatBubbleUser /> */}
-        {action && (
-          <div className="flex flex-col m-2 mt-auto">
-            <p className="text-center">
-              로그인을 완료하신 후 <br />
-              아래 버튼을 클릭해서 다음단계를 진행해주세요
-            </p>
-            <button className="flex justify-center items-center bg-[#FEE500] text-2xl rounded-xl p-1">
-              다음으로 진행
-              <SquareArrowRight className="ml-2" />
-            </button>
-          </div>
+        {chats.map((chat) =>
+          chat.who === "ai" ? (
+            <ChatBubbleAgent key={chat.msg} msg={chat.msg} />
+          ) : (
+            <ChatBubbleUser key={chat.msg} msg={chat.msg} />
+          )
         )}
-      </div>
-      {interrupted ?? (
-        <div>
-          <p>입력해주세요!</p>
+
+        <ChatBubbleUser className="mt-auto text-blue-500" msg="입력했습니다" />
+        <ChatBubbleUser className="text-blue-500" msg="입력하지 않았습니다" />
+
+        <div className="flex flex-col m-2">
+          <p className="text-center">
+            {isLoading
+              ? "작업중입니다..."
+              : "작업을 완료하고 아래 버튼을 클릭해주세요"}
+          </p>
+          <button
+            className="h-[40px] flex justify-center items-center bg-[#FEE500] text-2xl rounded-xl p-1"
+            onClick={() => {
+              setIsLoading(true);
+              const task = tasks.shift();
+              if (!task) return;
+              fetch(task.url)
+                .then((res) => res.json())
+                .then((data: Result) => {
+                  console.log(data);
+                  setChats((prev) => [...prev, { msg: data.msg, who: "ai" }]);
+                  setIsLoading(false);
+                });
+            }}
+          >
+            {isLoading ? (
+              <LoadingDots />
+            ) : (
+              <>
+                <span>다음으로 진행</span>
+                <SquareArrowRight className="ml-2" />
+              </>
+            )}
+          </button>
         </div>
-      )}
+      </div>
+
       <Banner />
     </main>
   );
@@ -134,24 +149,46 @@ function LoadingDots() {
   );
 }
 
-function ChatBubbleAgent(props: { isLoading: boolean; msg: string }) {
+function ChatBubbleAgent(props: { msg: string }) {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    // 마운트 후 바로 show = true
+    setTimeout(() => {
+      setShow(true);
+    }, 10);
+  }, []);
   return (
-    <div className="m-2 w-fit max-w-md p-3 rounded-2xl rounded-tl-none bg-[#FEE500]">
-      <p className="">
-        {props.msg}
-        {props.isLoading ?? <LoadingDots />}
-      </p>
+    <div
+      className={clsx(
+        "m-2 w-fit max-w-md p-3 rounded-2xl rounded-tl-none bg-[#FEE500]",
+        "transition-all duration-500 ease-out",
+        show ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      )}
+    >
+      <p className="">{props.msg}</p>
     </div>
   );
 }
 
-// function ChatBubbleUser() {
-//   return (
-//     <div className="m-2 self-end w-fit max-w-md p-3 rounded-2xl rounded-tr-none bg-gray-100">
-//       <p>helloworld</p>
-//     </div>
-//   );
-// }
+function ChatBubbleUser(props: {
+  msg: string;
+  className?: string;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
+}) {
+  return (
+    <div
+      className={clsx(
+        "m-2 self-end w-fit max-w-md p-3 rounded-2xl rounded-tr-none bg-gray-100",
+        props.onClick ?? "cursor-pointer",
+        props.className
+      )}
+      onClick={props.onClick}
+    >
+      <p>{props.msg}</p>
+    </div>
+  );
+}
 
 function Banner() {
   return (

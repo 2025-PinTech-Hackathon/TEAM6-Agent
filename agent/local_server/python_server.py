@@ -20,12 +20,8 @@ import logging
 from fastapi.middleware.cors import CORSMiddleware
 from agent.local_server.controllers import (
     requestController,
-    responseController,
-    webSocketController,
 )  # 라우터 import
 from fastapi.responses import Response
-
-from agent.local_server.controllers.webSocketManager import websocket_manager
 
 
 # ----------------------------
@@ -51,26 +47,8 @@ app.add_middleware(
 )
 
 
-@app.websocket("/ws/agent")
-async def websocket_endpoint(websocket: WebSocket):
-    await websocket_manager.connect(websocket)
-    try:
-        while True:
-            text = await websocket.receive_text()
-            print(text)
-    except:
-        websocket_manager.disconnect(websocket)
-
-
-# favicon 요청 억제 라우트 추가
-@app.get("/favicon.ico")
-async def favicon():
-    return Response(status_code=204)
-
-
 # 라우터 등록
 app.include_router(requestController.router)
-app.include_router(responseController.router)
 # app.include_router(webSocketController.router)
 
 # For executable.
