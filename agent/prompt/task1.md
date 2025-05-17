@@ -1,7 +1,7 @@
 # CAUTION
 
 - 사용자는 STDIN에서 입력을 절대 받지않음.
-
+- Browser-Use는 절대로 오른쪽 Side Panel에 위치한 Chrome-Extension 창을 인식하지 않는다.
 ---
 
 ### STEP 1.
