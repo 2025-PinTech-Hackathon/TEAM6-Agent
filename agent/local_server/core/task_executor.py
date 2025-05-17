@@ -83,7 +83,7 @@ async def execute_task(task_id: int, task: str):
         agent = Agent(
             task=task,
             llm=ChatGoogleGenerativeAI(
-                model="gemini-2.0-flash-exp", api_key=SecretStr(api_key)
+                model="gemini-2.5-pro-preview-05-06", api_key=SecretStr(api_key)
             ),
             browser=browser,
             controller=controller,

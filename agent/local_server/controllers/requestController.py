@@ -18,6 +18,7 @@ async def run_task_get(number: int):
     global task_id_counter
 
     with open(task_prompts[number - 1], "r", encoding="utf-8") as f:
+        print(f"NOW TASK {number}")
         task = f.read()
 
     logger.info(f"Received task via GET: {task_prompts[number - 1]}")
