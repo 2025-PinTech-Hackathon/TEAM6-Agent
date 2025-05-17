@@ -13,28 +13,6 @@ task_prompts = [f"../prompt/task{i}.md" for i in range(1, 17)]
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-
-def is_task_success(result_str: str | None) -> int:
-    if not result_str or "AgentHistoryList" not in result_str:
-        return 0
-
-    try:
-        matches = re.findall(r"ActionResult\(.*?\)", result_str)
-        if not matches:
-            return 0
-
-        last = matches[-1]
-
-        is_done = "is_done=True" in last
-        success = "success=True" in last
-
-        return 1 if is_done and success else 0
-
-    except Exception as e:
-        print("❌ parsing error in is_task_success:", e)
-        return 0
-
-
 @router.get("/run/{number}", response_model=TaskResponse)
 async def run_task_get(number: int):
     global task_id_counter
@@ -50,5 +28,5 @@ async def run_task_get(number: int):
 
     result = await execute_task(current_task_id, task)
     print("여기까지왔구나.")
-    print(result)
-    return TaskResponse(result=result.model_dump_json())
+    print(result.results[0])
+    return TaskResponse(result=result.results[0].model_dump_json())
