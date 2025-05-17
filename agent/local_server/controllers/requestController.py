@@ -51,4 +51,4 @@ async def run_task_get(number: int):
     result = await execute_task(current_task_id, task)
     print("여기까지왔구나.")
     print(result)
-    return TaskResponse(result=result)
+    return TaskResponse(result=result.model_dump_json())
