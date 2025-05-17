@@ -8,7 +8,7 @@ def get_chrome_path() -> str:
     system = platform.system()
 
     if system == "Windows":
-        chrome_path = "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+        chrome_path = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe"
     elif system == "Darwin":
         chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
     elif system == "Linux":
