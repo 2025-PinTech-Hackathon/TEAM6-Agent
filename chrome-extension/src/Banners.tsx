@@ -47,7 +47,7 @@ function Banner(props: {
         <div className="flex items-start space-x-3">
           <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
             <i className="fas fa-coins text-yellow-600">
-              <img src={wow} />
+              <img src={props.img} />
             </i>
           </div>
           <div>
