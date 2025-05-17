@@ -51,10 +51,4 @@ async def run_task_get(number: int):
     result = await execute_task(current_task_id, task)
     print("여기까지왔구나.")
     print(result)
-    return TaskResponse(
-        result=(
-            "Task 수행 성공! Task 실행 종료!"
-            if is_task_success(result)
-            else "Task 수행 실패! Task 실행 종료!"
-        )
-    )
+    return TaskResponse(result=result)
