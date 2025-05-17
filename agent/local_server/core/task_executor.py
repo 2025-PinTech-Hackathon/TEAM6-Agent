@@ -10,13 +10,13 @@ from agent.local_server.core.task_state import (
     TaskStatus,
 )
 from browser_use.browser.browser import Browser, BrowserConfig
-from browser_use import Agent
+from browser_use import Agent, Controller
 from langchain_openai import ChatOpenAI
 from agent.local_server.core.task_utils import get_chrome_path
 from pathlib import Path
 from langchain_google_genai import ChatGoogleGenerativeAI
 from pydantic import SecretStr
-
+from typing import List
 
 from pydantic import BaseModel
 
@@ -27,6 +27,11 @@ class AgentResult(BaseModel):
     is_success: bool
 
 
+class AgentResults(BaseModel):
+    results: List[AgentResult]
+
+
+controller = Controller(output_model=AgentResults)
 logger = logging.getLogger(__name__)
 
 # .env 상대 경로 자동 탐지
@@ -81,10 +86,16 @@ async def execute_task(task_id: int, task: str):
                 model="gemini-2.0-flash-exp", api_key=SecretStr(api_key)
             ),
             browser=browser,
+            controller=controller,
         )
         logger.info(f"Task ID {task_id}: Agent initialized. Running task.")
-        result = await agent.run()
+        history = await agent.run()
         logger.info(f"Task ID {task_id}: Agent.run() completed successfully.")
+        print(history)
+        result = history.final_result()
+        parsed: AgentResults = AgentResults.model_validate_json(result)
+
+        print(parsed.results)
 
         # Update the task record with status 'completed'
         async with task_lock:
@@ -97,9 +108,7 @@ async def execute_task(task_id: int, task: str):
                     ).total_seconds()
                     record.result = result
                     break
-
-        print("FIANL_RESULT")
-        return result.final_result()
+        return parsed
 
     except Exception as e:
         logger.error(f"Error in background task ID {task_id}: {e}")
