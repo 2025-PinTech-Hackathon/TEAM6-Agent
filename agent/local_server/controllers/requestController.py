@@ -8,7 +8,7 @@ from agent.local_server.core.task_state import (
 from agent.local_server.core.task_executor import execute_task
 import re
 
-task_prompts = [f"../prompt/task{i}.md" for i in range(1, 17)]
+task_prompts = [f"../prompt/task{i}.md" for i in range(1, 18)]
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -17,10 +17,10 @@ logger = logging.getLogger(__name__)
 async def run_task_get(number: int):
     global task_id_counter
 
-    with open(task_prompts[number], "r", encoding="utf-8") as f:
+    with open(task_prompts[number - 1], "r", encoding="utf-8") as f:
         task = f.read()
 
-    logger.info(f"Received task via GET: {task_prompts[number]}")
+    logger.info(f"Received task via GET: {task_prompts[number - 1]}")
 
     async with task_lock:
         task_id_counter += 1
