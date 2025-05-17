@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router";
+// import { useNavigate } from "react-router";
 import { SquareArrowRight } from "lucide-react";
 import clsx from "clsx";
+import wow from "./BK_KB_Profile.png";
 
 type Task = {
   url: string;
@@ -9,10 +10,12 @@ type Task = {
 };
 
 type Result = {
-  msg: string;
-  action: string;
+  result: string;
+};
+
+type InnerResult = {
+  next_goals_in_korean: string;
   is_success: boolean;
-  is_done: boolean;
 };
 
 type Chat = {
@@ -21,10 +24,6 @@ type Chat = {
 };
 
 const tasks: Task[] = [
-  {
-    url: "http://127.0.0.1:8888/run/0",
-    options: ["로그인을 완료하여 주세요"],
-  },
   { url: "http://127.0.0.1:8888/run/1" },
   { url: "http://127.0.0.1:8888/run/2" },
   { url: "http://127.0.0.1:8888/run/3" },
@@ -35,6 +34,13 @@ const tasks: Task[] = [
   { url: "http://127.0.0.1:8888/run/8" },
   { url: "http://127.0.0.1:8888/run/9" },
   { url: "http://127.0.0.1:8888/run/10" },
+  { url: "http://127.0.0.1:8888/run/11" },
+  { url: "http://127.0.0.1:8888/run/12" },
+  { url: "http://127.0.0.1:8888/run/13" },
+  { url: "http://127.0.0.1:8888/run/14" },
+  { url: "http://127.0.0.1:8888/run/15" },
+  { url: "http://127.0.0.1:8888/run/16" },
+  { url: "http://127.0.0.1:8888/run/17" },
 ];
 
 export function Agent() {
@@ -50,18 +56,21 @@ export function Agent() {
     setIsLoading(true);
     fetch(task.url)
       .then((res) => res.json())
-      .then((data: Result) => {
-        console.log(data);
-        setChats((prev) => [...prev, { msg: data.msg, who: "ai" }]);
+      .then(({ result }: Result) => {
+        const inner = JSON.parse(result) as InnerResult;
+        setChats((prev) => [
+          ...prev,
+          { msg: inner.next_goals_in_korean, who: "ai" },
+        ]);
         setIsLoading(false);
       });
   }, []);
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   return (
     <main className="flex flex-col h-full">
-      <div className="flex justify-end text-lg">
+      {/* <div className="flex justify-end text-lg">
         <button
           className="text-red-500"
           onClick={() => {
@@ -70,7 +79,7 @@ export function Agent() {
         >
           중단하기
         </button>
-      </div>
+      </div> */}
       <div className="flex flex-col flex-1 overflow-auto">
         {chats.map((chat) =>
           chat.who === "ai" ? (
@@ -80,10 +89,10 @@ export function Agent() {
           )
         )}
 
-        <ChatBubbleUser className="mt-auto text-blue-500" msg="입력했습니다" />
-        <ChatBubbleUser className="text-blue-500" msg="입력하지 않았습니다" />
+        {/* <ChatBubbleUser className="mt-auto text-blue-500" msg="입력했습니다" />
+        <ChatBubbleUser className="text-blue-500" msg="입력하지 않았습니다" /> */}
 
-        <div className="flex flex-col m-2">
+        <div className="flex flex-col m-2 mt-auto">
           <p className="text-center">
             {isLoading
               ? "작업중입니다..."
@@ -97,9 +106,12 @@ export function Agent() {
               if (!task) return;
               fetch(task.url)
                 .then((res) => res.json())
-                .then((data: Result) => {
-                  console.log(data);
-                  setChats((prev) => [...prev, { msg: data.msg, who: "ai" }]);
+                .then(({ result }: Result) => {
+                  const inner = JSON.parse(result) as InnerResult;
+                  setChats((prev) => [
+                    ...prev,
+                    { msg: inner.next_goals_in_korean, who: "ai" },
+                  ]);
                   setIsLoading(false);
                 });
             }}
@@ -196,7 +208,9 @@ function Banner() {
       <div className="flex justify-between items-start">
         <div className="flex items-start space-x-3">
           <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
-            <i className="fas fa-coins text-yellow-600"></i>
+            <i className="fas fa-coins text-yellow-600">
+              <img src={wow} />
+            </i>
           </div>
           <div>
             <h3 className="font-medium text-gray-900">KB내맘대로적금</h3>
